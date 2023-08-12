@@ -1,26 +1,29 @@
 #include <iostream>
-#include <filesystem>
-#include <stdlib.h>
+#include <thread>
+#include <chrono>
 #include <unistd.h>
+#include <windows.h>
+#include <stdlib.h>
+#include <experimental/filesystem>
+
 #include <termcolor/termcolor.hpp>
 #include <SFML/Audio.hpp>
 
-namespace fs = std::filesystem;
+
+
+namespace fs = std::experimental::filesystem;
 
 void snow(int s)
 {
-    for(int x = 0; x < s; x++)
-    {
-        if(rand() % 30 == 1)
-            std::cout << '.';
-        else
-            std::cout << ' ';
-    }
+    std::string line(s, ' ');
+    for(char &c : line)
+        if(rand() % 30 == 0)
+            c = '.';
+    std::cout << line;
 }
 
 void trees_toys(int x, int y, int frame)
 {
-
     if(x % 4 == 0)
     {
         if(y % 2 == frame % 2)
@@ -42,47 +45,64 @@ int main(int argc, char *argv[])
     }
     int tall = (argc == 1) ? 10 : atoi(argv[1]);
 
-    std::vector<std::string> music_path;
+    std::vector<std::string> music_paths;
     for(auto & p: fs::recursive_directory_iterator("music"))
     {
         if(fs::is_regular_file(p))
         {
             std::string ext = p.path().extension().string();
             if(ext == ".ogg" || ext == ".wav")
-                music_path.push_back(p.path().string());
+                music_paths.push_back(p.path().string());
         }
     }
-    std::sort(music_path.begin(), music_path.end());
-      
+    std::sort(music_paths.begin(), music_paths.end());
     sf::Music music;
     std::string music_name;
     int music_iterator = 0;
-    for(int i = 0; i < music_path.size(); i++)
-        std::cout << i + 1 << '\t' << music_path[i] << std::endl;
+    for(int i = 0; i < music_paths.size(); i++)
+        std::cout << i + 1 << '\t' << music_paths[i] << std::endl;
     
     std::cout << "\nctrl + c to exit\n";
-    sleep(4);
-    system("clear");
+    std::this_thread::sleep_for(std::chrono::seconds(4));
     for(int frame = 0; true; frame++)
     {
+        #ifdef __linux__ 
+            std::system("clear");
+        #elif _WIN32
+            std::system("cls");
+        #else
+            std::cout << "che";
+        #endif
+
         if(music.getStatus() != sf::Music::Status::Playing)
         {
-            if(music_iterator < music_path.size())
+            if(music_iterator < music_paths.size())
             {
-                music.openFromFile(music_path[music_iterator]);
+                music.openFromFile(music_paths[music_iterator]);
                 music.play();
                 music_name = "";
-                if(!music_path[music_iterator].empty())
-                    for(int i = 6; i < music_path[music_iterator].size() - 4; i++)
-                        music_name += music_path[music_iterator][i];
+                if(!music_paths[music_iterator].empty())
+                    for(int i = 6; i < music_paths[music_iterator].size() - 4; i++)
+                        music_name += music_paths[music_iterator][i];
                 music_iterator++;
             }
             else
                 music_iterator = 0;
         }
-
-        int w = WEXITSTATUS(std::system("exit `tput cols`"));
-        int h = WEXITSTATUS(std::system("exit `tput lines`"));
+        
+        #ifdef __linux__ 
+            int w = WEXITSTATUS(std::system("exit `tput cols`"));
+            int h = WEXITSTATUS(std::system("exit `tput lines`"));
+        #elif _WIN32
+            CONSOLE_SCREEN_BUFFER_INFO csbi;        
+            GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+            int w = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+            int h = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+        #else
+            int w = 40;
+            int h = 30;
+        #endif
+      
         int offtop_x = w / 2 - tall;
         int offtop_y = h * 3 / 4 - tall;
 
@@ -147,8 +167,7 @@ int main(int argc, char *argv[])
 
         std::cout << std::endl << termcolor::reset << music_name << std::endl;
 
-        sleep(2);
-        system("clear");
+        std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 
     return 0;
