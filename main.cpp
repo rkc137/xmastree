@@ -39,6 +39,7 @@ void trees_toys(int x, int y, int frame)
 
 int main(int argc, char *argv[])
 {
+    int w, h;
     int tall = (argc == 1) ? 10 : atoi(argv[1]);
     if(argc > 2)
     {
@@ -61,10 +62,10 @@ int main(int argc, char *argv[])
     
     sf::Music music;
     for(auto &name : music_names)
-        std::cout << name << std::endl;
+        std::cout << name << '\n';
     std::cout << "\nwere found in ./" << music_folder_name << "/\nctrl + c to exit\n";
-    
     std::this_thread::sleep_for(std::chrono::seconds(4));
+    
     std::set<std::string>::iterator music_iterator = music_names.begin();
     for(int frame = 0; true; frame++)
     {
@@ -88,8 +89,6 @@ int main(int argc, char *argv[])
                 music_iterator = music_names.begin();
         }
         
-
-        int w, h;
         #ifdef __linux__ 
             w = WEXITSTATUS(std::system("exit `tput cols`"));
             h = WEXITSTATUS(std::system("exit `tput lines`"));
@@ -109,10 +108,10 @@ int main(int argc, char *argv[])
         for(int y = 0; y < offtop_y; y++)
         {
             snow(w);
-            std::cout << std::endl;
+            std::cout << '\n';
         }
         snow(tall + offtop_x + 1);
-        std::cout << termcolor::bright_yellow << '*' << termcolor::reset << std::endl;
+        std::cout << termcolor::bright_yellow << '*' << termcolor::reset << '\n';
         for(int y = 0; y < tall; y++)
         {
             snow(tall - y + offtop_x);
@@ -153,22 +152,20 @@ int main(int argc, char *argv[])
                     trees_toys(x, y, frame);
             std::cout << termcolor::reset << '\\';
             snow(tall - y + offtop_x - 3);
-            std::cout << std::endl;
+            std::cout << '\n';
         }
 
         std::cout << termcolor::underline;
         snow(offtop_x);
-        for(int x = 0; x < tall + 1; x++)
-            std::cout << ' ';
+        std::string under_tree(tall + 1, ' ');
+        std::cout << under_tree;
         std::cout << termcolor::reset << termcolor::color<101, 67, 33> << '#' << termcolor::reset << termcolor::underline;
-        for(int x = 0; x < tall + 1; x++)
-            std::cout << ' ';
+        std::cout << under_tree;
         snow(offtop_x - 3);
 
-        std::cout << std::endl << termcolor::reset << music_iterator->substr(0, music_iterator->find_last_of('.')) << std::endl;
+        std::cout << '\n' << termcolor::reset << music_iterator->substr(0, music_iterator->find_last_of('.')) << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
-
     return 0;
 }
