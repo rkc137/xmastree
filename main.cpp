@@ -49,22 +49,23 @@ int main(int argc, char *argv[])
     const std::set<std::string> available_exts = {".flac", ".wav", ".ogg"};
     std::string music_folder_name = "music";
     
-    std::set<std::string> music_paths;
+    std::set<std::string> music_names;
     for(auto & p: fs::recursive_directory_iterator(music_folder_name))
     {
-        std::string ext(p.path().extension().string());//oop moment
+        //i think in one moment i will hate myself for that
+        std::string ext(p.path().extension().string()),
+               str_path(p.path().string());             //oop moment
         if(fs::is_regular_file(p) && (available_exts.find(ext) != available_exts.end()))
-            music_paths.insert(p.path().string());
+            music_names.insert(str_path.substr(music_folder_name.size() + 1, str_path.size()));
     }
     
     sf::Music music;
-    std::string music_name;
-    for(auto &name : music_paths)
-        std::cout << name.substr(music_folder_name.size() + 1, name.size()) << std::endl;
-    std::cout << "\nctrl + c to exit\n";
+    for(auto &name : music_names)
+        std::cout << name << std::endl;
+    std::cout << "\nwere found in ./" << music_folder_name << "/\nctrl + c to exit\n";
     
     std::this_thread::sleep_for(std::chrono::seconds(4));
-    std::set<std::string>::iterator music_iterator = music_paths.begin();
+    std::set<std::string>::iterator music_iterator = music_names.begin();
     for(int frame = 0; true; frame++)
     {
         #ifdef __linux__ 
@@ -77,15 +78,14 @@ int main(int argc, char *argv[])
 
         if(music.getStatus() != sf::Music::Status::Playing)
         {
-            if(music_iterator != music_paths.end())
+            if(music_iterator != music_names.end())
             {
-                music_name = music_iterator->substr(music_folder_name.size() + 1, music_iterator->size());
-                music.openFromFile(*music_iterator);
+                music.openFromFile(music_folder_name + '/' + *music_iterator);
                 music.play();
                 music_iterator++;
             }
             else
-                music_iterator = music_paths.begin();
+                music_iterator = music_names.begin();
         }
         
 
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
             std::cout << ' ';
         snow(offtop_x - 3);
 
-        std::cout << std::endl << termcolor::reset << music_name << std::endl;
+        std::cout << std::endl << termcolor::reset << music_iterator->substr(0, music_iterator->find_last_of('.')) << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
