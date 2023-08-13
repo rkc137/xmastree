@@ -2,14 +2,15 @@
 #include <thread>
 #include <chrono>
 #include <unistd.h>
-#include <windows.h>
 #include <stdlib.h>
 #include <experimental/filesystem>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <termcolor/termcolor.hpp>
 #include <SFML/Audio.hpp>
-
-
 
 namespace fs = std::experimental::filesystem;
 
@@ -38,32 +39,32 @@ void trees_toys(int x, int y, int frame)
 
 int main(int argc, char *argv[])
 {
+    int tall = (argc == 1) ? 10 : atoi(argv[1]);
     if(argc > 2)
     {
         std::cout << "usage: xmstree [tall]\n";
         return 0;
     }
-    int tall = (argc == 1) ? 10 : atoi(argv[1]);
 
-    std::vector<std::string> music_paths;
-    for(auto & p: fs::recursive_directory_iterator("music"))
+    const std::set<std::string> available_exts = {".flac", ".wav", ".ogg"};
+    std::string music_folder_name = "music";
+    
+    std::set<std::string> music_paths;
+    for(auto & p: fs::recursive_directory_iterator(music_folder_name))
     {
-        if(fs::is_regular_file(p))
-        {
-            std::string ext = p.path().extension().string();
-            if(ext == ".ogg" || ext == ".wav")
-                music_paths.push_back(p.path().string());
-        }
+        std::string ext(p.path().extension().string());//oop moment
+        if(fs::is_regular_file(p) && (available_exts.find(ext) != available_exts.end()))
+            music_paths.insert(p.path().string());
     }
-    std::sort(music_paths.begin(), music_paths.end());
+    
     sf::Music music;
     std::string music_name;
-    int music_iterator = 0;
-    for(int i = 0; i < music_paths.size(); i++)
-        std::cout << i + 1 << '\t' << music_paths[i] << std::endl;
-    
+    for(auto &name : music_paths)
+        std::cout << name.substr(music_folder_name.size() + 1, name.size()) << std::endl;
     std::cout << "\nctrl + c to exit\n";
+    
     std::this_thread::sleep_for(std::chrono::seconds(4));
+    std::set<std::string>::iterator music_iterator = music_paths.begin();
     for(int frame = 0; true; frame++)
     {
         #ifdef __linux__ 
@@ -71,36 +72,35 @@ int main(int argc, char *argv[])
         #elif _WIN32
             std::system("cls");
         #else
-            std::cout << "che";
+            std::cout << ":)))\n\n\n\n\n\n\n\n\n";
         #endif
 
         if(music.getStatus() != sf::Music::Status::Playing)
         {
-            if(music_iterator < music_paths.size())
+            if(music_iterator != music_paths.end())
             {
-                music.openFromFile(music_paths[music_iterator]);
+                music_name = music_iterator->substr(music_folder_name.size() + 1, music_iterator->size());
+                music.openFromFile(*music_iterator);
                 music.play();
-                music_name = "";
-                if(!music_paths[music_iterator].empty())
-                    for(int i = 6; i < music_paths[music_iterator].size() - 4; i++)
-                        music_name += music_paths[music_iterator][i];
                 music_iterator++;
             }
             else
-                music_iterator = 0;
+                music_iterator = music_paths.begin();
         }
         
+
+        int w, h;
         #ifdef __linux__ 
-            int w = WEXITSTATUS(std::system("exit `tput cols`"));
-            int h = WEXITSTATUS(std::system("exit `tput lines`"));
+            w = WEXITSTATUS(std::system("exit `tput cols`"));
+            h = WEXITSTATUS(std::system("exit `tput lines`"));
         #elif _WIN32
             CONSOLE_SCREEN_BUFFER_INFO csbi;        
             GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-            int w = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-            int h = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+            w = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+            h = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
         #else
-            int w = 40;
-            int h = 30;
+            w = 40;
+            h = 30;
         #endif
       
         int offtop_x = w / 2 - tall;
