@@ -40,6 +40,8 @@ void trees_toys(int x, int y, int frame)
 int main(int argc, char *argv[])
 {
     int w, h;
+    int offtop_x, offtop_y;
+    
     int tall = (argc == 1) ? 10 : atoi(argv[1]);
     if(argc > 2)
     {
@@ -66,7 +68,7 @@ int main(int argc, char *argv[])
     std::cout << "\nwere found in ./" << music_folder_name << "/\nctrl + c to exit\n";
     std::this_thread::sleep_for(std::chrono::seconds(4));
     
-    std::set<std::string>::iterator music_iterator = music_names.begin();
+    auto music_iterator = music_names.begin();
     for(int frame = 0; true; frame++)
     {
         #ifdef __linux__ 
@@ -102,8 +104,8 @@ int main(int argc, char *argv[])
             h = 30;
         #endif
       
-        int offtop_x = w / 2 - tall;
-        int offtop_y = h * 3 / 4 - tall;
+        offtop_x = w / 2 - tall;
+        offtop_y = h * 3 / 4 - tall;
 
         for(int y = 0; y < offtop_y; y++)
         {
@@ -126,7 +128,7 @@ int main(int argc, char *argv[])
                         std::cout << termcolor::on_blue;
                         break;
                     case 1:
-                        std::cout << termcolor::on_yellow ;
+                        std::cout << termcolor::on_yellow;
                         break;
                     case 2:
                         std::cout << termcolor::on_red;
