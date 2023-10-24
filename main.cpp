@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
             music_names.insert(file_name);
     }
     
+    auto music_iterator = music_names.begin();
     sf::Music music;
     for(auto &name : music_names)
         std::cout << name << '\n';
@@ -89,7 +90,8 @@ int main(int argc, char *argv[])
     int w, h;
     int offtop_x, offtop_y;
     
-    auto music_iterator = music_names.begin();
+    music.openFromFile(music_folder_name + '/' + *music_iterator);
+    music.play();
     for(int frame = 0; true; frame++)
     {
         #ifdef __linux__ 
@@ -104,9 +106,9 @@ int main(int argc, char *argv[])
         {
             if(music_iterator != music_names.end())
             {
+                music_iterator++;
                 music.openFromFile(music_folder_name + '/' + *music_iterator);
                 music.play();
-                music_iterator++;
             }
             else
                 music_iterator = music_names.begin();
@@ -186,7 +188,6 @@ int main(int argc, char *argv[])
         std::cout << under_tree;
         snow(offtop_x - 3);
 
-        
         std::cout << '\n' << termcolor::reset << music_iterator->substr(0, music_iterator->find_last_of('.')) << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
