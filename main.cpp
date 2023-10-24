@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
         {
             if(is_ingore_mp3 || is_ingore_other_files)
                 continue;
-            std::cout << "mp3 is not working, so you need to use -ignmp3 to ignore mp3 files in folder or reformat " 
+            std::cout << "mp3 is not working, so you need to use -ignmp3 to ignore mp3 files in folder or format " 
                       << file_name << " to some of there:\n";
             for(auto ext : available_exts)
                 std::cout << ext << '\n';
@@ -79,19 +79,18 @@ int main(int argc, char *argv[])
         if(fs::is_regular_file(p))
             music_names.insert(file_name);
     }
-    
-    auto music_iterator = music_names.begin();
-    sf::Music music;
+
     for(auto &name : music_names)
         std::cout << name << '\n';
     std::cout << "\nwere found in ./" << music_folder_name << "/\nctrl + c to exit\n";
     std::this_thread::sleep_for(std::chrono::seconds(4));
 
+
     int w, h;
     int offtop_x, offtop_y;
     
-    music.openFromFile(music_folder_name + '/' + *music_iterator);
-    music.play();
+    sf::Music music;
+    auto music_iterator = music_names.end();
     for(int frame = 0; true; frame++)
     {
         #ifdef __linux__ 
@@ -105,13 +104,12 @@ int main(int argc, char *argv[])
         if(music.getStatus() != sf::Music::Status::Playing)
         {
             if(music_iterator != music_names.end())
-            {
                 music_iterator++;
-                music.openFromFile(music_folder_name + '/' + *music_iterator);
-                music.play();
-            }
             else
                 music_iterator = music_names.begin();
+
+            music.openFromFile(music_folder_name + '/' + *music_iterator);
+            music.play();
         }
         
         #ifdef __linux__ 
