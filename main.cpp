@@ -41,12 +41,12 @@ void trees_toys(int x, int y, int frame)
 int main(int argc, char *argv[])
 {
     int tall = (argc == 1) ? 10 : atoi(argv[1]);
-    bool is_ingore_mp3;
-    bool is_ingore_other_files;
+    bool is_ingore_mp3 = false;
+    bool is_ingore_other_files = false;
     for (int i = 1; i < argc; i++)
-    { 
-        is_ingore_mp3 = !strcmp(argv[i], "-ignmp3");
-        is_ingore_other_files = !strcmp(argv[i], "-ign");
+    {
+        if(!is_ingore_mp3) is_ingore_mp3 = !strcmp(argv[i], "-ignmp3");
+        if(!is_ingore_other_files) is_ingore_other_files = !strcmp(argv[i], "-ign");
     }
 
     const std::set<std::string> available_exts = {".flac", ".wav", ".ogg"};
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
         
         if(ext == ".mp3")
         {
-            if(is_ingore_mp3)
+            if(is_ingore_mp3 || is_ingore_other_files)
                 continue;
             std::cout << "mp3 is not working, so you need to use -ignmp3 to ignore mp3 files in folder or reformat " 
                       << file_name << " to some of there:\n";
