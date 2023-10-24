@@ -1,9 +1,10 @@
 #include <iostream>
+#include <cstring>
 #include <thread>
 #include <chrono>
 #include <unistd.h>
 #include <stdlib.h>
-#include <experimental/filesystem>
+#include <filesystem>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -12,7 +13,7 @@
 #include <termcolor/termcolor.hpp>
 #include <SFML/Audio.hpp>
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 void snow(int s)
 {
@@ -39,27 +40,44 @@ void trees_toys(int x, int y, int frame)
 
 int main(int argc, char *argv[])
 {
-    int w, h;
-    int offtop_x, offtop_y;
-    
     int tall = (argc == 1) ? 10 : atoi(argv[1]);
-    if(argc > 2)
-    {
-        std::cout << "usage: xmstree [tall]\n";
-        return 0;
+    bool is_ingore_mp3;
+    bool is_ingore_other_files;
+    for (int i = 1; i < argc; i++)
+    { 
+        is_ingore_mp3 = !strcmp(argv[i], "-ignmp3");
+        is_ingore_other_files = !strcmp(argv[i], "-ign");
     }
 
     const std::set<std::string> available_exts = {".flac", ".wav", ".ogg"};
     std::string music_folder_name = "music";
     
     std::set<std::string> music_names;
-    for(auto & p: fs::recursive_directory_iterator(music_folder_name))
+    for(auto &p: fs::recursive_directory_iterator(music_folder_name))
     {
-        //i think in one moment i will hate myself for that
         std::string ext(p.path().extension().string()),
-               str_path(p.path().string());             //oop moment
-        if(fs::is_regular_file(p) && (available_exts.find(ext) != available_exts.end()))
-            music_names.insert(str_path.substr(music_folder_name.size() + 1, str_path.size()));
+               str_path(p.path().string()),
+              file_name(str_path.substr(music_folder_name.size() + 1, str_path.size()));
+        
+        if(ext == ".mp3")
+        {
+            if(is_ingore_mp3)
+                continue;
+            std::cout << "mp3 is not working, so you need to use -ignmp3 to ignore mp3 files in folder or reformat " 
+                      << file_name << " to some of there:\n";
+            for(auto ext : available_exts)
+                std::cout << ext << '\n';
+            return 1;
+        }
+        if(available_exts.find(ext) == available_exts.end())
+        {
+            if(is_ingore_other_files)
+                continue;
+            std::cout << file_name << " is wrong format\n";
+            return 1;
+        }
+        if(fs::is_regular_file(p))
+            music_names.insert(file_name);
     }
     
     sf::Music music;
@@ -67,6 +85,9 @@ int main(int argc, char *argv[])
         std::cout << name << '\n';
     std::cout << "\nwere found in ./" << music_folder_name << "/\nctrl + c to exit\n";
     std::this_thread::sleep_for(std::chrono::seconds(4));
+
+    int w, h;
+    int offtop_x, offtop_y;
     
     auto music_iterator = music_names.begin();
     for(int frame = 0; true; frame++)
@@ -165,6 +186,7 @@ int main(int argc, char *argv[])
         std::cout << under_tree;
         snow(offtop_x - 3);
 
+        
         std::cout << '\n' << termcolor::reset << music_iterator->substr(0, music_iterator->find_last_of('.')) << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
