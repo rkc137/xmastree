@@ -65,6 +65,9 @@ int main(int argc, char *argv[])
         if(!is_ingore_other_files) is_ingore_other_files = !strcmp(argv[i], "-ign");
     }
     
+    if(music_folder_name.back() == '/')
+        music_folder_name.pop_back();
+    
     const std::set<std::string> available_exts = {".flac", ".wav", ".ogg"};
     std::set<std::string> music_names;
     for(auto &p: fs::recursive_directory_iterator(music_folder_name))
@@ -100,7 +103,7 @@ int main(int argc, char *argv[])
 
     for(auto &name : music_names)
         std::cout << name << '\n';
-    std::cout << "\nwere found in " << music_folder_name << "/\nctrl + c to exit\n";
+    std::cout << "\nwere found in " << music_folder_name << "\nctrl + c to exit\n";
     std::this_thread::sleep_for(std::chrono::seconds(4));
 
 
