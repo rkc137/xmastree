@@ -6,36 +6,35 @@
 #include <stdlib.h>
 #include <filesystem>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-#include <termcolor/termcolor.hpp>
 #include <SFML/Audio.hpp>
+
+#include "colorset.hpp"
 
 namespace fs = std::filesystem;
 
-void snow(int s)
+std::string snow(int s)
 {
     std::string line(s, ' ');
     for(char &c : line)
         if(rand() % 30 == 0)
             c = '.';
-    std::cout << line;
+    return line;
 }
 
-void trees_toys(int x, int y, int frame)
+std::string trees_toys(int x, int y, int frame)
 {
+    std::string toy;
     if(x % 4 == 0)
     {
         if(y % 2 == frame % 2)
-            std::cout << termcolor::on_red;
+            toy += clr::on_red;
         else
-            std::cout << termcolor::on_cyan;
-        std::cout << '&' << termcolor::reset;
+            toy += clr::on_cyan;
+        toy += '&' + clr::white;
     }
     else
-        std::cout << termcolor::green << '*' << termcolor::reset;
+        toy += clr::green + '*' + clr::white;
+    return toy;
 }
 
 int main(int argc, char *argv[])
@@ -46,23 +45,18 @@ int main(int argc, char *argv[])
     std::string music_folder_name = "music";
     for(int i = 1; i < argc; i++)
     {
-        if(i + 1 != argc)
-        {
-            if(!strcmp(argv[i], "-f"))
-            {                 
-                music_folder_name = argv[i + 1];
-                i++;
-                continue;
-            }
-            if(!strcmp(argv[i], "-t"))
-            {                 
-                tall = atoi(argv[i + 1]);
-                i++;
-                continue;
-            }
-        }
         if(!is_ingore_mp3) is_ingore_mp3 = !strcmp(argv[i], "-ignmp3");
         if(!is_ingore_other_files) is_ingore_other_files = !strcmp(argv[i], "-ign");
+        
+        if(i + 1 != argc)
+        {
+            if(!strcmp(argv[i], "-f"))              
+                music_folder_name = argv[i + 1];
+            if(!strcmp(argv[i], "-t"))
+                tall = atoi(argv[i + 1]);
+            i++;
+            continue;
+        }
     }
     
     if(music_folder_name.back() == '/')
@@ -112,16 +106,9 @@ int main(int argc, char *argv[])
     
     sf::Music music;
     auto music_iterator = music_names.end();
+    std::string output;
     for(int frame = 0; true; frame++)
     {
-        #ifdef __linux__ 
-            std::system("clear");
-        #elif _WIN32
-            std::system("cls");
-        #else
-            std::cout << ":)))\n\n\n\n\n\n\n\n\n";
-        #endif
-
         if(music.getStatus() != sf::Music::Status::Playing)
         {
             if(music_iterator != music_names.end())
@@ -132,86 +119,53 @@ int main(int argc, char *argv[])
             music.openFromFile(music_folder_name + '/' + *music_iterator);
             music.play();
         }
+
+        if(frame % 10 == 0)
+            std::system("clear");
         
-        #ifdef __linux__ 
-            w = WEXITSTATUS(std::system("exit `tput cols`"));
-            h = WEXITSTATUS(std::system("exit `tput lines`"));
-        #elif _WIN32
-            CONSOLE_SCREEN_BUFFER_INFO csbi;        
-            GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-            w = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-            h = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-        #else
-            w = 40;
-            h = 30;
-        #endif
+        w = WEXITSTATUS(std::system("exit `tput cols`"));
+        h = WEXITSTATUS(std::system("exit `tput lines`")) + 7;
       
         offtop_x = w / 2 - tall;
         offtop_y = h * 3 / 4 - tall;
 
         for(int y = 0; y < offtop_y; y++)
-        {
-            snow(w);
-            std::cout << '\n';
-        }
-        snow(tall + offtop_x + 1);
-        std::cout << termcolor::bright_yellow << '*' << termcolor::reset << '\n';
+            output += snow(w) + '\n';
+        output += snow(tall + offtop_x + 1);
+        output += clr::bright_yellow + '*' + clr::white + '\n';
         for(int y = 0; y < tall; y++)
         {
-            snow(tall - y + offtop_x);
-            std::cout << '/';
+            output += snow(tall - y + offtop_x) + '/';
             if(frame % 40 > 20)
             {
                 for(int x = 0; x < y * 2 + 1; x++)
                 {
-                    switch(rand() % (30 + tall))
-                    {
-                    case 0:
-                        std::cout << termcolor::on_blue;
-                        break;
-                    case 1:
-                        std::cout << termcolor::on_yellow;
-                        break;
-                    case 2:
-                        std::cout << termcolor::on_red;
-                        break;
-                    case 3:
-                        std::cout << termcolor::on_magenta;
-                        break;
-                    case 4:
-                        std::cout << termcolor::on_cyan;
-                        break;
-                    default:
-                        std::cout << termcolor::green << '*' << termcolor::reset;
-                        continue;
-                    }
-                    std::cout << '&' << termcolor::reset;
+                    if(rand() % (30 + tall) > clr::toys_clrs.size())
+                        output += clr::green + '*' + clr::white;
+                    else
+                        output += *clr::toys_clrs[rand() % clr::toys_clrs.size()] + '&' + clr::white;
                 }
             }
             else if(frame % 20 > 10)
                 for(int x = y * 2 + 1; x > 0; x--)
-                    trees_toys(x, y, frame);
+                    output += trees_toys(x, y, frame);
             else
                 for(int x = 0; x < y * 2 + 1; x++)
-                    trees_toys(x, y, frame);
-            std::cout << termcolor::reset << '\\';
-            snow(tall - y + offtop_x - 3);
-            std::cout << '\n';
+                    output += trees_toys(x, y, frame);
+            output += clr::white + '\\' + snow(tall - y + offtop_x - 3) + '\n';
         }
 
-        std::cout << termcolor::underline;
-        snow(offtop_x);
+        output += clr::underline + snow(offtop_x);
         std::string under_tree(tall + 1, ' ');
-        std::cout << under_tree;
-        std::cout << termcolor::reset << termcolor::color<101, 67, 33> << '#' << termcolor::reset << termcolor::underline;
-        std::cout << under_tree;
-        snow(offtop_x - 3);
+        output += under_tree;
+        output += clr::white + clr::underline + clr::brown + '#' + clr::white + clr::underline;
+        output += under_tree + snow(offtop_x - 3);
 
         int file_name_start = music_iterator->find_last_of('/') + 1;
-        std::cout << '\n' << termcolor::reset 
-                  << music_iterator->substr(file_name_start, music_iterator->find_last_of('.') - file_name_start)
-                  << std::endl;
-
+        output += '\n' + clr::white 
+                + music_iterator->substr(file_name_start, music_iterator->find_last_of('.') - file_name_start)
+                + '\n';
+        std::cout << output;
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
     return 0;
