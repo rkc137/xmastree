@@ -1,7 +1,6 @@
 # xmastree
 simple terminal xmastree with music
 to buld you need:
-https://termcolor.readthedocs.io/
 https://www.sfml-dev.org/
 and dir "music" wth your music
 
