@@ -11,3 +11,7 @@ how to use:
 `xmstree -t [tall] -f "[path to your music]"`
 also you can use `-ignmp3` to ignore mp3 files (sfml dont work with that)
 or `-ign` to ignore all not available files
+
+# build
+first of install sfml ` sudo apt-get install libsfml-dev`
+and then use cmake or just build using  `g++ main.cpp -o xmastree -lsfml-audio`
