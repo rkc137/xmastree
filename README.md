@@ -1,17 +1,18 @@
 # xmastree
-simple terminal xmastree with music
-to buld you need:
-https://www.sfml-dev.org/
-and dir "music" wth your music
+Simple terminal xmastree that can play music. All you need is dir "music" wth your music. Made with [sfml](https://www.sfml-dev.org/)
 
-In short, it was a gift for the new year, but in the end no one even downloaded and looked at it :(
-I don’t want it to just disappear, maybe someone will enjoy this
+it was a gift for the new year, enjoy
 
-how to use:
-`xmstree -t [tall] -f "[path to your music]"`
-also you can use `-ignmp3` to ignore mp3 files (sfml dont work with that)
-or `-ign` to ignore all not available files
+## how to use
+`xmstree [options]`
+| flag                     | description                                      |
+|-----|-----|
+| `-t <value>` | tall of tree in chars |
+| `-f "<value>"` | providing custom path to music |
+| `-nm` | start without playing any music |
 
-# build
-first of install sfml ` sudo apt-get install libsfml-dev`
-and then use cmake or just build using  `g++ main.cpp -o xmastree -lsfml-audio`
+## build
+`mkdir build`
+`cd build`
+`cmake ..`
+`cmake --build ..`
