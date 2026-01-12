@@ -12,7 +12,7 @@ it was a gift for the new year, enjoy
 | `-nm` | start without playing any music |
 
 ## build
-`mkdir build`
-`cd build`
-`cmake ..`
-`cmake --build ..`
+- `mkdir build`
+- `cd build`
+- `cmake ..`
+- `cmake --build ..`
